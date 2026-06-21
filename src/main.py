@@ -14,6 +14,11 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+
+import colorama
+from colorama import Fore, Style
+
 from graph_city_path_finding.comparison import (
     format_academic_analysis,
     format_comparison_table,
@@ -22,31 +27,77 @@ from graph_city_path_finding.comparison import (
 )
 from graph_city_path_finding.graph_data import build_city_network
 
+# ---------------------------------------------------------------------------
+# Color constants (local shortcuts)
+# ---------------------------------------------------------------------------
+
+_R = Style.RESET_ALL          # reset all
+_D = Fore.LIGHTBLACK_EX       # dark gray — secondary text
+_H = Style.BRIGHT              # bold — emphasis
+_CYAN = Fore.LIGHTCYAN_EX      # headers, banners, step markers
+_GREEN = Fore.LIGHTGREEN_EX    # success, optimal
+_YELLOW = Fore.LIGHTYELLOW_EX  # list items, city names
+
+
+def _configure_encoding() -> None:
+    """Configure stdout for UTF-8 and initialize colorama for ANSI support."""
+    if sys.platform == "win32":
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    colorama.init()
+
+
+def _banner() -> None:
+    """Print the colored application banner."""
+    w = 76
+    border_top = f"{_CYAN}╔{'═' * (w - 2)}╗{_R}"
+    border_bot = f"{_CYAN}╚{'═' * (w - 2)}╝{_R}"
+    pad = w - 4  # inner width excluding "║ " and " ║"
+    line1 = "CITY PATH-FINDING — Search Algorithm Comparison Demo"
+    line2 = "search-library v1.0.0 | graph-city-path-finding v1.0.0"
+    print(border_top)
+    print(f"{_CYAN}║ {_H}{line1:<{pad}}{_R}{_CYAN} ║{_R}")
+    print(f"{_CYAN}║ {_D}{line2:<{pad}}{_R}{_CYAN} ║{_R}")
+    print(border_bot)
+
+
+def _step(text: str) -> None:
+    """Print a colored step marker (▶)."""
+    print(f"{_CYAN}▶{_R} {_H}{text}{_R}")
+
+
+def _section(title: str) -> None:
+    """Print a colored section divider."""
+    print(f"{_CYAN}{'=' * 80}{_R}")
+    print(f"  {_CYAN}{title}{_R}")
+    print(f"{_CYAN}{'=' * 80}{_R}")
+
 
 def main() -> None:
     """Run the complete city path-finding demonstration."""
+    _configure_encoding()
+
     print()
-    print("╔══════════════════════════════════════════════════════════════════════╗")
-    print("║     CITY PATH-FINDING — Search Algorithm Comparison Demo           ║")
-    print("║     search-library v1.0.0                                          ║")
-    print("╚══════════════════════════════════════════════════════════════════════╝")
+    _banner()
     print()
 
     # --- Step 1: Build the city network ---
-    print("▶ Building city road network...")
+    _step("Building city road network...")
     network = build_city_network(start="Arequipa", goal="Cusco")
-    print(f"  Cities: {network.city_count}")
-    print(f"  Network: {', '.join(network.cities)}")
-    print(f"  Problem: Find optimal route from {network.start} to {network.goal}")
+    print(f"  Cities:  {_H}{network.city_count}{_R}")
+    print(f"  Network: {_D}{', '.join(network.cities)}{_R}")
+    print(
+        f"  Problem: Find optimal route from "
+        f"{_GREEN}{network.start}{_R} to {_GREEN}{network.goal}{_R}"
+    )
     print()
 
     # --- Step 2: Display graph structure ---
-    print("▶ Graph structure (adjacency):")
+    _step("Graph structure (adjacency):")
     _print_graph_structure(network)
     print()
 
     # --- Step 3: Run algorithm comparison ---
-    print("▶ Running search algorithms...")
+    _step("Running search algorithms...")
     print()
     report = run_comparison(network)
 
@@ -59,7 +110,7 @@ def main() -> None:
 
 
 def _print_graph_structure(network: object) -> None:
-    """Print the graph adjacency structure in a readable format.
+    """Print the graph adjacency structure in a readable colored format.
 
     Args:
         network: CityNetwork instance.
@@ -71,8 +122,11 @@ def _print_graph_structure(network: object) -> None:
 
     for city in sorted(network.graph.nodes):
         neighbors = network.graph.neighbors(city)
-        neighbor_strs = [f"{n}({w:.0f}km)" for n, w in sorted(neighbors)]
-        print(f"  {city}: {', '.join(neighbor_strs)}")
+        neighbor_strs = [
+            f"{_YELLOW}{n}{_R}{_D}({w:.0f}km){_R}"
+            for n, w in sorted(neighbors)
+        ]
+        print(f"  {_H}{city}{_R}: {', '.join(neighbor_strs)}")
 
 
 if __name__ == "__main__":

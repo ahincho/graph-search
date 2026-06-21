@@ -1,14 +1,14 @@
 """Algorithm comparison engine for city path-finding.
 
 This module provides structured comparison of search algorithms on the same
-problem instance, collecting metrics and generating formatted output suitable
-for academic analysis.
+problem instance, collecting metrics and generating colored formatted output
+suitable for academic analysis.
 
 Metrics collected per algorithm:
 - Path found (sequence of cities)
 - Total cost (sum of edge weights = total km)
 - Number of nodes explored (search efficiency)
-- Execution time (wall-clock, optional)
+- Execution time (wall-clock in milliseconds)
 - Optimality verdict (compared against known optimal cost)
 """
 
@@ -17,6 +17,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 
+from colorama import Fore, Style
 from search_library import (
     SearchResult,
     astar_search,
@@ -28,6 +29,23 @@ from search_library import (
 
 from graph_city_path_finding.graph_data import CityNetwork
 from graph_city_path_finding.heuristics import CityEuclideanHeuristic
+
+# ---------------------------------------------------------------------------
+# Color constants (module-level for reuse across all format functions)
+# ---------------------------------------------------------------------------
+
+_R = Style.RESET_ALL          # reset all
+_D = Fore.LIGHTBLACK_EX       # dark gray — secondary text (descriptions, separators)
+_H = Style.BRIGHT              # bold — headers and key values
+_CYAN = Fore.LIGHTCYAN_EX      # section titles, scenario names
+_GREEN = Fore.LIGHTGREEN_EX    # optimal / success
+_RED = Fore.LIGHTRED_EX        # suboptimal / failure
+_YELLOW = Fore.LIGHTYELLOW_EX  # bullets, warnings
+
+
+# ---------------------------------------------------------------------------
+# Data Structures
+# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -73,6 +91,11 @@ class ComparisonReport:
     def algorithm_names(self) -> list[str]:
         """Return list of algorithm names in comparison order."""
         return [r.algorithm_name for r in self.results]
+
+
+# ---------------------------------------------------------------------------
+# Comparison Engine
+# ---------------------------------------------------------------------------
 
 
 def run_comparison(network: CityNetwork) -> ComparisonReport:
@@ -159,161 +182,220 @@ def run_comparison(network: CityNetwork) -> ComparisonReport:
     )
 
 
+# ---------------------------------------------------------------------------
+# Formatting (colored)
+# ---------------------------------------------------------------------------
+
+
 def format_comparison_table(report: ComparisonReport) -> str:
-    """Format the comparison report as a readable ASCII table.
+    """Format the comparison report as a colored ASCII table.
+
+    Padding rule: format plain string with f-spec first, then wrap in color.
 
     Args:
         report: The ComparisonReport to format.
 
     Returns:
-        Multi-line string with formatted comparison table.
+        Multi-line colored string with formatted comparison table.
     """
     lines: list[str] = []
 
-    # Header
-    lines.append("=" * 90)
-    lines.append(f"  ALGORITHM COMPARISON: {report.start} → {report.goal}")
-    lines.append(f"  Optimal cost (Dijkstra baseline): {report.optimal_cost:.1f} km")
-    lines.append("=" * 90)
+    # Header — format plain strings first, then wrap in color
+    lines.append(f"{_CYAN}{'=' * 90}{_R}")
+    lines.append(
+        f"  {_CYAN}ALGORITHM COMPARISON:{_R} "
+        f"{_H}{report.start} → {report.goal}{_R}"
+    )
+    lines.append(
+        f"  {_D}Optimal cost (Dijkstra baseline):{_R} "
+        f"{_GREEN}{report.optimal_cost:.1f} km{_R}"
+    )
+    lines.append(f"{_CYAN}{'=' * 90}{_R}")
     lines.append("")
 
-    # Table header
-    header = f"{'Algorithm':<15} {'Cost (km)':<12} {'Nodes':<8} {'Time (ms)':<12} {'Optimal':<9} {'Path'}"
-    lines.append(header)
-    lines.append("-" * 90)
+    # Table header — format plain strings first, then wrap in bold
+    h_algo  = f"{'Algorithm':<15}"
+    h_cost  = f"{'Cost (km)':<12}"
+    h_nodes = f"{'Nodes':<8}"
+    h_time  = f"{'Time (ms)':<12}"
+    h_opt   = f"{'Optimal':<9}"
+    h_path  = "Path"
+    lines.append(f"  {_H}{h_algo} {h_cost} {h_nodes} {h_time} {h_opt} {h_path}{_R}")
+    lines.append(f"  {_D}{'-' * 88}{_R}")
 
-    # Table rows
     for result in report.results:
+        # Format all fields as plain strings (preserves alignment), then color
+        algo_str = f"{result.algorithm_name:<15}"
         if result.success:
+            cost_str  = f"{result.total_cost:<12.1f}"
+            nodes_str = f"{result.nodes_explored:<8}"
+            time_str  = f"{result.execution_time_ms:<12.4f}"
+
             path_str = " → ".join(result.path)
             if len(path_str) > 35:
                 path_str = path_str[:32] + "..."
-            optimal_mark = "✓" if result.is_optimal else "✗"
-            row = (
-                f"{result.algorithm_name:<15} "
-                f"{result.total_cost:<12.1f} "
-                f"{result.nodes_explored:<8} "
-                f"{result.execution_time_ms:<12.4f} "
-                f"{optimal_mark:<9} "
-                f"{path_str}"
+
+            # Pad plain char first, then wrap in color (rule: no color in format spec)
+            opt_char   = "✓" if result.is_optimal else "✗"
+            opt_padded = f"{opt_char:<9}"
+            opt_color  = _GREEN if result.is_optimal else _RED
+            opt_field  = f"{opt_color}{opt_padded}{_R}"
+
+            lines.append(
+                f"  {algo_str} {cost_str} {nodes_str} {time_str} {opt_field} {path_str}"
             )
         else:
-            row = f"{result.algorithm_name:<15} {'N/A':<12} {'N/A':<8} {'N/A':<12} {'✗':<9} No path found"
-        lines.append(row)
+            # No-path rows in dim gray
+            na_cost  = f"{'N/A':<12}"
+            na_nodes = f"{'N/A':<8}"
+            na_time  = f"{'N/A':<12}"
+            na_opt   = f"{'—':<9}"
+            lines.append(
+                f"  {_D}{algo_str} {na_cost} {na_nodes} {na_time} {na_opt} No path found{_R}"
+            )
 
-    lines.append("-" * 90)
+    lines.append(f"  {_D}{'-' * 88}{_R}")
     lines.append("")
     return "\n".join(lines)
 
 
 def format_detailed_paths(report: ComparisonReport) -> str:
-    """Format detailed path information for each algorithm.
+    """Format detailed path information for each algorithm (colored).
 
     Args:
         report: The ComparisonReport to format.
 
     Returns:
-        Multi-line string with detailed path breakdown.
+        Multi-line colored string with detailed path breakdown.
     """
     lines: list[str] = []
-    lines.append("DETAILED PATHS")
-    lines.append("-" * 50)
+    lines.append(f"{_CYAN}DETAILED PATHS{_R}")
+    lines.append(f"{_D}{'-' * 50}{_R}")
 
     for result in report.results:
-        lines.append(f"\n  {result.algorithm_name}:")
+        lines.append(f"\n  {_H}{result.algorithm_name}{_R}:")
         if result.success:
             lines.append(f"    Path: {' → '.join(result.path)}")
-            lines.append(f"    Hops: {len(result.path) - 1}")
-            lines.append(f"    Cost: {result.total_cost:.1f} km")
-            lines.append(f"    Explored: {result.nodes_explored} nodes")
+            lines.append(f"    Hops: {_H}{len(result.path) - 1}{_R}")
+            cost_color = _GREEN if result.is_optimal else _RED
+            lines.append(f"    Cost: {cost_color}{result.total_cost:.1f} km{_R}")
+            lines.append(f"    Explored: {_H}{result.nodes_explored}{_R} nodes")
         else:
-            lines.append("    No path found")
+            lines.append(f"    {_D}No path found{_R}")
 
     lines.append("")
     return "\n".join(lines)
 
 
 def format_academic_analysis(report: ComparisonReport) -> str:
-    """Generate academic analysis explaining the results.
+    """Generate colored academic analysis explaining the results.
 
     Args:
         report: The ComparisonReport to analyze.
 
     Returns:
-        Multi-line string with academic explanation.
+        Multi-line colored string with academic explanation.
     """
     lines: list[str] = []
-    lines.append("ACADEMIC ANALYSIS")
-    lines.append("=" * 70)
+    lines.append(f"{_CYAN}{'=' * 70}{_R}")
+    lines.append(f"  {_CYAN}ACADEMIC ANALYSIS{_R}")
+    lines.append(f"{_CYAN}{'=' * 70}{_R}")
     lines.append("")
 
-    # Find specific results
     results_by_name = {r.algorithm_name: r for r in report.results}
     dijkstra = results_by_name.get("Dijkstra")
-    astar = results_by_name.get("A*")
-    bfs = results_by_name.get("BFS")
-    dfs = results_by_name.get("DFS")
+    astar    = results_by_name.get("A*")
+    bfs      = results_by_name.get("BFS")
+    dfs      = results_by_name.get("DFS")
 
-    # A* vs Dijkstra efficiency
+    # --- 1. A* vs Dijkstra ---
     if astar and dijkstra and astar.success and dijkstra.success:
+        lines.append(f"  {_H}1. A* vs Dijkstra (Informed vs Uninformed Optimal Search){_R}")
+        lines.append(f"  {_D}{'-' * 60}{_R}")
         efficiency_gain = dijkstra.nodes_explored - astar.nodes_explored
         if efficiency_gain > 0:
             pct = (efficiency_gain / dijkstra.nodes_explored) * 100
-            lines.append("1. A* vs Dijkstra (Informed vs Uninformed Optimal Search)")
-            lines.append(f"   Both find the optimal path (cost = {dijkstra.total_cost:.1f} km).")
-            lines.append(f"   A* explored {astar.nodes_explored} nodes vs Dijkstra's {dijkstra.nodes_explored}.")
-            lines.append(f"   A* is {pct:.0f}% more efficient due to heuristic guidance.")
-            lines.append("   The Euclidean heuristic prunes branches that lead away from the goal.")
+            savings_color = _GREEN if pct >= 50 else _YELLOW
+            lines.append(
+                f"   Both find the optimal path "
+                f"(cost = {_GREEN}{dijkstra.total_cost:.1f} km{_R})."
+            )
+            lines.append(
+                f"   A* explored {_H}{astar.nodes_explored}{_R} nodes "
+                f"vs Dijkstra's {_H}{dijkstra.nodes_explored}{_R}."
+            )
+            lines.append(
+                f"   A* is {savings_color}{pct:.0f}% more efficient{_R} due to heuristic guidance."
+            )
+            lines.append(
+                "   The Euclidean heuristic prunes branches that lead away from the goal."
+            )
         else:
-            lines.append("1. A* vs Dijkstra")
-            lines.append(f"   Both find optimal path (cost = {dijkstra.total_cost:.1f} km).")
+            lines.append(
+                f"   Both find optimal path (cost = {_GREEN}{dijkstra.total_cost:.1f} km{_R})."
+            )
             lines.append("   In this small graph, both explore similar node counts.")
         lines.append("")
 
-    # BFS limitations
+    # --- 2. BFS limitations ---
     if bfs and dijkstra and bfs.success and dijkstra.success:
-        lines.append("2. BFS Limitations in Weighted Graphs")
+        lines.append(f"  {_H}2. BFS Limitations in Weighted Graphs{_R}")
+        lines.append(f"  {_D}{'-' * 60}{_R}")
         if not bfs.is_optimal:
             cost_diff = bfs.total_cost - dijkstra.total_cost
-            lines.append(f"   BFS found a path costing {bfs.total_cost:.1f} km (suboptimal by {cost_diff:.1f} km).")
+            lines.append(
+                f"   BFS found a path costing {_RED}{bfs.total_cost:.1f} km{_R} "
+                f"(suboptimal by {_RED}{cost_diff:.1f} km{_R})."
+            )
             lines.append("   BFS minimizes HOP COUNT, not total cost.")
             lines.append("   It selects the path with fewest edges, ignoring edge weights.")
         else:
-            lines.append(f"   BFS found the optimal path ({bfs.total_cost:.1f} km) by coincidence.")
+            lines.append(
+                f"   BFS found the optimal path ({_GREEN}{bfs.total_cost:.1f} km{_R}) by coincidence."
+            )
             lines.append("   In general, BFS does NOT guarantee cost-optimality in weighted graphs.")
             lines.append("   It minimizes hop count, which happened to align with minimal cost here.")
         lines.append("")
 
-    # DFS characteristics
+    # --- 3. DFS characteristics ---
     if dfs and dijkstra and dfs.success and dijkstra.success:
-        lines.append("3. DFS: Completeness Without Optimality")
+        lines.append(f"  {_H}3. DFS: Completeness Without Optimality{_R}")
+        lines.append(f"  {_D}{'-' * 60}{_R}")
         if not dfs.is_optimal:
-            lines.append(f"   DFS found a path costing {dfs.total_cost:.1f} km (non-optimal).")
+            ratio = dfs.total_cost / dijkstra.total_cost if dijkstra.total_cost > 0 else 1.0
+            dfs_color = _RED if ratio > 2 else _YELLOW
+            lines.append(
+                f"   DFS found a path costing {dfs_color}{dfs.total_cost:.1f} km{_R} "
+                f"({dfs_color}{ratio:.2f}x optimal{_R})."
+            )
         else:
-            lines.append(f"   DFS found the optimal path ({dfs.total_cost:.1f} km) by luck.")
+            lines.append(
+                f"   DFS found the optimal path ({_GREEN}{dfs.total_cost:.1f} km{_R}) by luck."
+            )
         lines.append("   DFS explores depth-first and returns the FIRST path found.")
         lines.append("   It has no mechanism to prefer shorter or cheaper paths.")
         lines.append("   Its result depends on successor ordering, not path quality.")
         lines.append("")
 
-    # Heuristic role
-    lines.append("4. Role of the Heuristic Function")
+    # --- 4. Heuristic role ---
+    lines.append(f"  {_H}4. Role of the Heuristic Function{_R}")
+    lines.append(f"  {_D}{'-' * 60}{_R}")
     lines.append("   h(n) = Euclidean distance from city n to the goal city.")
     lines.append("   Properties:")
-    lines.append("     - Admissible: straight-line ≤ road distance (never overestimates)")
-    lines.append("     - Consistent: satisfies triangle inequality")
-    lines.append("     - Effect: guides A* toward the goal, reducing unnecessary exploration")
+    lines.append(f"     {_YELLOW}•{_R} Admissible: straight-line ≤ road distance (never overestimates)")
+    lines.append(f"     {_YELLOW}•{_R} Consistent: satisfies triangle inequality")
+    lines.append(f"     {_YELLOW}•{_R} Effect: guides A* toward the goal, reducing unnecessary exploration")
     lines.append("   Without a heuristic (h=0), A* degenerates into Dijkstra.")
     lines.append("")
 
-    # Conclusion
-    lines.append("CONCLUSION")
-    lines.append("-" * 70)
-    lines.append("  For weighted graph path-finding with spatial structure:")
-    lines.append("  • A* is the best choice — optimal AND efficient with a good heuristic")
-    lines.append("  • Dijkstra is correct but explores more nodes (no directional guidance)")
-    lines.append("  • BFS is inappropriate — optimizes hop count, not distance")
-    lines.append("  • DFS is unreliable — no optimality or efficiency guarantees")
+    # --- Conclusion ---
+    lines.append(f"  {_CYAN}{'=' * 60}{_R}")
+    lines.append(f"  {_CYAN}CONCLUSION — For weighted graph path-finding:{_R}")
+    lines.append(f"  {_CYAN}{'=' * 60}{_R}")
+    lines.append(f"  {_YELLOW}•{_R} {_GREEN}A*{_R}           — optimal AND efficient with a good heuristic")
+    lines.append(f"  {_YELLOW}•{_R} Dijkstra     — correct but explores more nodes (no directional guidance)")
+    lines.append(f"  {_YELLOW}•{_R} BFS          — inappropriate: optimizes hop count, not distance")
+    lines.append(f"  {_YELLOW}•{_R} DFS          — unreliable: no optimality or efficiency guarantees")
     lines.append("")
 
     return "\n".join(lines)
