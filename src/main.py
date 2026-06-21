@@ -1,4 +1,4 @@
-"""Main entry point for the city pathfinding demonstration.
+"""Main entry point for the city path-finding demonstration.
 
 Orchestrates the complete example:
 1. Builds the city road network graph
@@ -7,27 +7,27 @@ Orchestrates the complete example:
 4. Prints academic conclusions
 
 Usage:
-    uv run city-pathfinding
+    uv run city-path-finding
     # or
-    uv run python -m graph_city_pathfinding.main
+    uv run python -m graph_city_path_finding.main
 """
 
 from __future__ import annotations
 
-from graph_city_pathfinding.comparison import (
+from graph_city_path_finding.comparison import (
     format_academic_analysis,
     format_comparison_table,
     format_detailed_paths,
     run_comparison,
 )
-from graph_city_pathfinding.graph_data import build_city_network
+from graph_city_path_finding.graph_data import build_city_network
 
 
 def main() -> None:
-    """Run the complete city pathfinding demonstration."""
+    """Run the complete city path-finding demonstration."""
     print()
     print("╔══════════════════════════════════════════════════════════════════════╗")
-    print("║     CITY PATHFINDING — Search Algorithm Comparison Demo            ║")
+    print("║     CITY PATH-FINDING — Search Algorithm Comparison Demo           ║")
     print("║     search-library v1.0.0                                          ║")
     print("╚══════════════════════════════════════════════════════════════════════╝")
     print()
@@ -64,7 +64,7 @@ def _print_graph_structure(network: object) -> None:
     Args:
         network: CityNetwork instance.
     """
-    from graph_city_pathfinding.graph_data import CityNetwork
+    from graph_city_path_finding.graph_data import CityNetwork
 
     if not isinstance(network, CityNetwork):
         return

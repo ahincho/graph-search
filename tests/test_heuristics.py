@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from graph_city_pathfinding.graph_data import CITY_COORDINATES, ROAD_CONNECTIONS
-from graph_city_pathfinding.heuristics import (
+from graph_city_path_finding.graph_data import CITY_COORDINATES, ROAD_CONNECTIONS
+from graph_city_path_finding.heuristics import (
     CityEuclideanHeuristic,
     compute_euclidean_distance,
 )

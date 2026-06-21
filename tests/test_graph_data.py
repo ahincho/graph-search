@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from graph_city_pathfinding.graph_data import (
+from graph_city_path_finding.graph_data import (
     CITY_COORDINATES,
     ROAD_CONNECTIONS,
     CityNetwork,

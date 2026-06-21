@@ -29,8 +29,8 @@ class CityNetwork:
     Attributes:
         graph: Weighted undirected graph where nodes are city names.
         coordinates: Mapping of city name to (x, y) position in km.
-        start: Default origin city for pathfinding.
-        goal: Default destination city for pathfinding.
+        start: Default origin city for path-finding.
+        goal: Default destination city for path-finding.
     """
 
     graph: Graph[str]
@@ -111,8 +111,8 @@ def build_city_network(
     approximate driving distance in kilometers.
 
     Args:
-        start: Origin city for pathfinding (default: Arequipa).
-        goal: Destination city for pathfinding (default: Cusco).
+        start: Origin city for path-finding (default: Arequipa).
+        goal: Destination city for path-finding (default: Cusco).
 
     Returns:
         CityNetwork with the graph, coordinates, and search endpoints.

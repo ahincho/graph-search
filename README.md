@@ -1,4 +1,4 @@
-# City Pathfinding — Search Algorithm Comparison
+# City Path-Finding — Search Algorithm Comparison
 
 Academic demonstration of search algorithms applied to optimal route finding
 in a weighted city road network graph using [search-library](https://github.com/ahincho/search-library).
@@ -18,7 +18,7 @@ This is a classic **graph search problem** with the following properties:
 
 ### Why This Problem?
 
-Road network pathfinding is a canonical application of graph search because:
+Road network path-finding is a canonical application of graph search because:
 
 1. It has **non-uniform edge costs** (unlike grid problems with unit cost)
 2. Multiple paths exist between endpoints, enabling algorithm comparison
@@ -216,7 +216,7 @@ uv sync
 ### Run the demonstration
 
 ```bash
-uv run city-pathfinding
+uv run city-path-finding
 ```
 
 ### Run tests

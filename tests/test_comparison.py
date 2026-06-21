@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import pytest
-from graph_city_pathfinding.comparison import (
+from graph_city_path_finding.comparison import (
     ComparisonReport,
     format_academic_analysis,
     format_comparison_table,
     format_detailed_paths,
     run_comparison,
 )
-from graph_city_pathfinding.graph_data import build_city_network
+from graph_city_path_finding.graph_data import build_city_network
 
 
 class TestRunComparison:

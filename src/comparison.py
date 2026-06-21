@@ -1,4 +1,4 @@
-"""Algorithm comparison engine for city pathfinding.
+"""Algorithm comparison engine for city path-finding.
 
 This module provides structured comparison of search algorithms on the same
 problem instance, collecting metrics and generating formatted output suitable
@@ -26,8 +26,8 @@ from search_library import (
     dijkstra_search,
 )
 
-from graph_city_pathfinding.graph_data import CityNetwork
-from graph_city_pathfinding.heuristics import CityEuclideanHeuristic
+from graph_city_path_finding.graph_data import CityNetwork
+from graph_city_path_finding.heuristics import CityEuclideanHeuristic
 
 
 @dataclass(frozen=True)
@@ -309,7 +309,7 @@ def format_academic_analysis(report: ComparisonReport) -> str:
     # Conclusion
     lines.append("CONCLUSION")
     lines.append("-" * 70)
-    lines.append("  For weighted graph pathfinding with spatial structure:")
+    lines.append("  For weighted graph path-finding with spatial structure:")
     lines.append("  • A* is the best choice — optimal AND efficient with a good heuristic")
     lines.append("  • Dijkstra is correct but explores more nodes (no directional guidance)")
     lines.append("  • BFS is inappropriate — optimizes hop count, not distance")

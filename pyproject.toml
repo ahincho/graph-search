@@ -1,14 +1,14 @@
 [project]
-name = "graph-city-pathfinding"
+name = "graph-city-path-finding"
 version = "1.0.0"
-description = "Academic demonstration of search algorithms on a city road network graph. Compares A*, BFS, DFS, and Dijkstra for optimal pathfinding."
+description = "Academic demonstration of search algorithms on a city road network graph. Compares A*, BFS, DFS, and Dijkstra for optimal path-finding."
 readme = "README.md"
 license = "MIT"
 authors = [
     { name = "ahincho", email = "ahincho@unsa.edu.pe" }
 ]
 requires-python = ">=3.14"
-keywords = ["pathfinding", "astar", "graph", "search", "algorithms", "education"]
+keywords = ["path-finding", "astar", "graph", "search", "algorithms", "education"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Education",
@@ -21,17 +21,17 @@ dependencies = [
 ]
 
 [project.scripts]
-city-pathfinding = "graph_city_pathfinding.main:main"
+city-path-finding = "graph_city_path_finding.main:main"
 
 [build-system]
 requires = ["setuptools>=75.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["graph_city_pathfinding"]
+packages = ["graph_city_path_finding"]
 
 [tool.setuptools.package-dir]
-graph_city_pathfinding = "src"
+graph_city_path_finding = "src"
 
 [dependency-groups]
 dev = [

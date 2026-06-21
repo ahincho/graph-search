@@ -1,4 +1,4 @@
-"""Euclidean distance heuristic for city graph pathfinding.
+"""Euclidean distance heuristic for city graph path-finding.
 
 This module implements a custom heuristic function compatible with
 search-library's Heuristic[str] interface. It computes the straight-line

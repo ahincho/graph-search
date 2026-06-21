@@ -1,4 +1,4 @@
-"""Graph City Pathfinding - Academic demonstration of search algorithms.
+"""Graph City Path-Finding - Academic demonstration of search algorithms.
 
 This example demonstrates how different search algorithms (A*, BFS, DFS, Dijkstra)
 perform on a realistic city road network graph, comparing their optimality,

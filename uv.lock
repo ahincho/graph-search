@@ -51,7 +51,7 @@ wheels = [
 ]
 
 [[package]]
-name = "graph-city-pathfinding"
+name = "graph-city-path-finding"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [
